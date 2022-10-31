@@ -115,22 +115,22 @@ def medical_records(file_list):
             conclusion_data += i
     medical_records["conclusion"] = conclusion_data
 
-    """ CLIENT INSTRUCTIONS """
-    for i in range(len(file_list)):
-        if "Client Instructions" in file_list[i]:
-            start_index = i
-            print(start_index)
-    end_index = start_index
-    while end_index < len(file_list) and  "Treatment Request Details:" not in  file_list[end_index]:
-        end_index += 1
+    # """ CLIENT INSTRUCTIONS """
+    # for i in range(len(file_list)):
+    #     if "Client Instructions" in file_list[i]:
+    #         start_index = i
+    #         print(start_index)
+    # end_index = start_index
+    # while end_index < len(file_list) and  "Treatment Request Details:" not in  file_list[end_index]:
+    #     end_index += 1
 
-    instructions = file_list[start_index : end_index]
-    instruction_data = ''
-    for i in instructions:
-        if "Client Instructions" in i:
-            pass
-        else:
-            instruction_data += i
-    medical_records["client_instructions"] = instruction_data
+    # instructions = file_list[start_index : end_index]
+    # instruction_data = ''
+    # for i in instructions:
+    #     if "Client Instructions" in i:
+    #         pass
+    #     else:
+    #         instruction_data += i
+    # medical_records["client_instructions"] = instruction_data
 
     return medical_records
