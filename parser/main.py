@@ -47,8 +47,8 @@ def main(read_path):
         print(return_statement)
 
     except Exception as error:
-        print(F"Error in the Main Function with file {file_name} | Message : {error}")
+        print(F"ERROR IN MAIN FUNCTION WITH FILE : {file_name} | Message : {error}")
 
 if __name__ == "__main__":
-    path = '/home/ctp/Desktop/pdf-parser/parser/NMR_PDF/746975-1.pdf' # add the pdf files to NMR files
+    path = '/home/ctp/Desktop/pdf-parser/parser/NMR_PDF/746860-1.pdf' # add the pdf files to NMR files
     main(path)

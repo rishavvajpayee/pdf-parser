@@ -2,14 +2,20 @@
 JSON PARSER
 """
 
+import time
+from tracemalloc import start
+
 def peer_review(file_list):
-        temp_index = 0
-        while temp_index < len(file_list) and file_list[temp_index] != "Medical Records:":
-            temp_index += 1
+    print("RUNNING PEER REVIEWW | ON FILE LIST")
+    start_time = time.time()
+    temp_index = 0
+    while temp_index < len(file_list) and file_list[temp_index] != "Medical Records:":
+        temp_index += 1
 
-        preview = file_list[0 : temp_index]
-        request_form = {}
+    preview = file_list[0 : temp_index]
+    request_form = {}
 
+    try:
         for i in preview:
             data = i.split(":")
             if 'Employer' in data[0]:
@@ -53,65 +59,208 @@ def peer_review(file_list):
             if "Review" in data[0]:
                 request_form["review_type"] = data[1]
 
+    except Exception as error:
+        request_form = {}
+
+    finally:
+        end_time = time.time()
+        print(f"SUCCESSFULLY RAN PEER REVIEW | TIMING : {round(end_time - start_time, 2)}")
         return request_form
 
 def medical_records(file_list):
     """
     MEDICAL RECORDS
     """
+    print("RUNNING MEDICAL RECORDS | ON FILE LIST")
+
+    start_time = time.time()
     medical_records = {}
 
-    """ TREATMENT REQUESTED """
-    for i in range(len(file_list)):
-        if "Requested" in file_list[i]:
-            start_index = i
-            break
-    end_index = start_index
-    while end_index < len(file_list) and "Diagnosis" not in file_list[end_index]:
-        end_index += 1
-    treatment = file_list[start_index : end_index]
+    try:
+        """ TREATMENT REQUESTED """
+        for i in range(len(file_list)):
+            if "Requested" in file_list[i]:
+                start_index = i
+                break
+        end_index = start_index
+        while end_index < len(file_list) and "Diagnosis" not in file_list[end_index]:
+            end_index += 1
+        treatment = file_list[start_index : end_index]
 
-    treatment_data = ''
-    for i in treatment:
-        treatment_data += i
-    medical_records["treatment_requested"] = treatment_data
-
-
-    """ DIAGNOSIS """
-    for i in range(len(file_list)):
-        if "Diagnosis" in file_list[i]:
-            start_index = i
-            break
-    end_index = start_index
-    while end_index < len(file_list) and  file_list[end_index] != "Conclusion:":
-        end_index += 1
-    diagnosis = file_list[start_index : end_index]
-
-    diagnosis_data = ''
-    for i in diagnosis:
-        if "Diagnosis" in i:
-            pass
-        else:
-            diagnosis_data += i
-    medical_records["diagnosis"] = diagnosis_data
+        treatment_data = ''
+        for i in treatment:
+            treatment_data += i
+        medical_records["treatment_requested"] = treatment_data
 
 
-    """ CONCLUSION """
-    for i in range(len(file_list)):
-        if "Conclusion:" in file_list[i]:
-            start_index = i
-            print(start_index)
-    end_index = start_index
-    while end_index < len(file_list) and "Treatment Request Details:" not in  file_list[end_index]:
-        end_index += 1
+        """ DIAGNOSIS """
+        for i in range(len(file_list)):
+            if "Diagnosis" in file_list[i]:
+                start_index = i
+                break
+        end_index = start_index
+        while end_index < len(file_list) and  file_list[end_index] != "Conclusion:":
+            end_index += 1
+        diagnosis = file_list[start_index : end_index]
 
-    conclusion = file_list[start_index : end_index]
-    conclusion_data = ''
-    for i in conclusion:
-        if "Conclusion" in i:
-            pass
-        else:
-            conclusion_data += i
-    medical_records["conclusion"] = conclusion_data
+        diagnosis_data = ''
+        for i in diagnosis:
+            if "Diagnosis" in i:
+                pass
+            else:
+                diagnosis_data += i
+        medical_records["diagnosis"] = diagnosis_data
 
-    return medical_records
+
+        """ CONCLUSION """
+        for i in range(len(file_list)):
+            if "Conclusion:" in file_list[i]:
+                start_index = i
+        end_index = start_index
+        while end_index < len(file_list) and "Treatment Request Details:" not in  file_list[end_index]:
+            end_index += 1
+
+        conclusion = file_list[start_index : end_index]
+        conclusion_data = ''
+        for i in conclusion:
+            if "Conclusion" in i:
+                pass
+            else:
+                conclusion_data += i
+        medical_records["conclusion"] = conclusion_data
+
+    except Exception as error:
+        medical_records = {}
+
+    finally:
+        end_time = time.time()
+        print(f"SUCCESSFULLY RAN MEDICAL RECORDS | TIMING : {round(end_time - start_time, 2)}")
+        return medical_records
+
+def nmr_parser(file_list):
+
+    print("RUNNING NMR SUMMARY | FILE LIST")
+    start_time = time.time()
+
+    try:
+        for i in range(len(file_list)):
+            if "NMR" in file_list[i]:
+                start_index = i
+
+        end_index = start_index
+        while end_index < len(file_list) and "SSN" not in file_list[end_index]:
+            end_index += 1
+
+        nmr_data = file_list[start_index : end_index]
+
+        nmr = {}
+
+        for i in nmr_data:
+            data = i.split(" ")
+            if 'ClientDueDate' in data[0] and len(data) <= 3:
+                nmr["client_due_date"] = data[1 :]
+
+            if 'Referrer' in data[0]:
+                nmr["referrer"] = data[-1]
+
+            if 'ReferrerPhone' in data[0]:
+                nmr["referrer_phone"] = data[-1]
+
+            if "ReferrerEmail" in data[0]:
+                nmr['referrer_email'] = data[-1]
+
+            if 'Client' in data[0] and "ClientDueData" not in data[0] and len(data) > 3:
+                client_data = ''
+                for i in data[1:]:
+                    client_data += i
+                print(client_data)
+                nmr["client_data"] =  client_data
+
+            if "Turnaround" in data[0]:
+                nmr["turn_around_type"] = data[-1]
+
+            if "DateCreated" in data[0]:
+                nmr["date_created"] = data[1:]
+
+            if "ReferralType" in data[0]:
+                nmr['referral_type'] = data[-1]
+
+            if "Lineof" in data[0]:
+                nmr["line_of_business"] = data[-1]
+
+            if "ReviewType" in data[0]:
+                nmr["review_type"] = data[-1]
+
+            if "ReviewLevel" in data[0]:
+                nmr["review_level"] = data[-1]
+
+            if "ReviewTiming" in data[0]:
+                nmr["review_timing"] = data[-1]
+
+            if "StateofJurisdiction" in data[0]:
+                nmr["state_of_jurisdiction"] = data[-1]
+
+            if "LastName" in data[0]:
+                nmr["lastname"] = data[-1]
+
+            if "Firstname" in data[0]:
+                nmr["firstname"] = data[-1]
+
+            if "ClaimNumber" in data[0]:
+                nmr["claim_number"] = data[-1]
+
+            if "Gender" in data[0]:
+                nmr["gender"] = data[-1]
+
+            if "DateofBirth" in data[0]:
+                nmr["DOB"] = data[-1]
+
+            if "DateofDisability" in data[0]:
+                nmr["date_of_disability/injury"] = data[-1]
+
+            if "Diagnosis" in data[0]:
+                diagnosis_data = ''
+                for i in data:
+                    i = i.replace(",","")
+                    i = i.replace(";", "")
+                    if "Diagnosis" in i:
+                        d = i.split("(es)")
+                        diagnosis_data += d[-1]
+                    else:
+                        diagnosis_data += " " + i
+                nmr["diagnosis"] = diagnosis_data
+
+        """ CASE SUMMARY """
+        for i in range(len(file_list)):
+            if "CaseSummaryGuideline" in file_list[i]:
+                start_index = i
+                break
+        end_index = start_index
+        while end_index < len(file_list) and "Location" not in file_list[end_index]:
+            end_index += 1
+        summary = file_list[start_index : end_index]
+
+        summary_data = ''
+        for i in summary:
+            if "CaseSummaryGuideline" in i:
+                split_data = i.split(" ")
+                main_data = ""
+                for i in range(len(split_data)):
+                    if "CaseSummaryGuideline" in split_data[i]:
+                        continue
+                    if "Variance" in split_data[i]:
+                        continue
+                    else:
+                        main_data += split_data[i] + " "
+                        summary_data += main_data
+            else:
+                summary_data += i
+        nmr["case_summary"] = summary_data
+
+    except Exception as error:
+        nmr = {}
+
+    finally:
+        end_time = time.time()
+        print(f"SUCCESSFULLY RAN NMR SUMMARY | TIMING : {round(end_time - start_time, 2)}")
+        return nmr
