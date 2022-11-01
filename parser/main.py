@@ -62,5 +62,5 @@ def main(read_path):
 
 
 if __name__ == "__main__":
-    path = '/home/ctp/Desktop/pdf-parser/parser/NMR_PDF/746860-1.pdf' # add the pdf files to NMR files
+    path = '/home/ctp/Desktop/pdf-parser/parser/NMR_PDF/746975-1.pdf' # add the pdf files to NMR files
     main(path)
