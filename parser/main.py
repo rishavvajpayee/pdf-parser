@@ -50,5 +50,5 @@ def main(read_path):
         print(F"Error in the Main Function with file {file_name} | Message : {error}")
 
 if __name__ == "__main__":
-    path = '/home/ctp/Desktop/pdf-parser/parser/NMR_PDF/746485-1.pdf' # add the pdf files to NMR files
+    path = '/home/ctp/Desktop/pdf-parser/parser/NMR_PDF/746975-1.pdf' # add the pdf files to NMR files
     main(path)
