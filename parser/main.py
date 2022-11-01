@@ -2,6 +2,7 @@
 PDF TO TEXT
 """
 
+from random import randint
 import PyPDF2
 from jsonparser import json_parser
 from utils.utils import *
@@ -22,6 +23,10 @@ def main(read_path):
             page_content = ''
 
             for i in range(number_of_pages):
+                """ just for testing purpose """
+                # if i in range(1):
+                #     continue
+                # else:
                 page = read_pdf.pages[i]
                 page_content += "\n \n" + page.extractText()
 
@@ -57,5 +62,5 @@ def main(read_path):
 
 
 if __name__ == "__main__":
-    path = '/home/ctp/Desktop/pdf-parser/parser/NMR_PDF/747000-1.pdf' # add the pdf files to NMR files
+    path = '/home/ctp/Desktop/pdf-parser/parser/NMR_PDF/746860-1.pdf' # add the pdf files to NMR files
     main(path)
