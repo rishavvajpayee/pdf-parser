@@ -5,11 +5,13 @@ PDF TO TEXT
 import PyPDF2
 from jsonparser import json_parser
 from utils.utils import *
+import time
 
 def main(read_path):
     """
     Convert PDF to Text
     """
+    t1 = time.time()
     try:
         file_name = read_path.split("/")[-1].split(".")[0]
 
@@ -44,11 +46,16 @@ def main(read_path):
         return_json = json_parser(file_list, location)
         return_statement = convert_to_json(return_json, file_name)
 
-        print(return_statement)
-
     except Exception as error:
+        return_statement = error
         print(F"ERROR IN MAIN FUNCTION WITH FILE : {file_name} | Message : {error}")
 
+    finally:
+        print(return_statement)
+        t2 = time.time()
+        print(f"RAN MAIN FUNCTION | TIMINGS : {round(t2-t1,2)}")
+
+
 if __name__ == "__main__":
-    path = '/home/ctp/Desktop/pdf-parser/parser/NMR_PDF/746860-1.pdf' # add the pdf files to NMR files
+    path = '/home/ctp/Desktop/pdf-parser/parser/NMR_PDF/747000-1.pdf' # add the pdf files to NMR files
     main(path)
