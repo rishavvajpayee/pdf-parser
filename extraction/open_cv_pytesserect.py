@@ -4,7 +4,8 @@ import os
 cwd = os.getcwd()
 print(cwd)
 
-pdfs = f'{cwd}/NMR_PDF/747110-1.pdf'
+pdfs = f'{cwd}/NMR_PDF/746860-1.pdf'
+file_name  = pdfs.split("/")[-1].split(".")[0]
 pages = convert_from_path(pdfs, 350)
 
 i = 1
@@ -12,6 +13,10 @@ for page in pages:
     image_name = "Page_"+str(i)+".jpg"
     page.save(image_name, "JPEG")
     i = i+1
+
+print("valueeeeeeeeeeeeeeeee---------------->", i)
+
+length = i
 
 import cv2
 from PIL import Image
@@ -47,35 +52,43 @@ def mark_region(image_path):
             image = cv2.rectangle(im, (x,y), (2200, y+h), color=(255,0,255), thickness=3)
             line_items_coordinates.append([(x,y), (2200, y+h)])
 
-    plt.imshow(image)
-    plt.show
+    # plt.imshow(image)
+    # plt.show
     return {'image': image, 'data': line_items_coordinates}
 
-image_path = f'{cwd}/Page_5.jpg'
-output = mark_region(image_path)
-line_items_coordinates = output['data']
-print(line_items_coordinates)
-print("This was line item", len(line_items_coordinates))
 
-import pytesseract
+for i in range(length-1):
+    if i == 0:
+        continue
+    else:
+        image_path = f'{cwd}/Page_{i}.jpg'
+        output = mark_region(image_path)
+        line_items_coordinates = output['data']
+        print(line_items_coordinates)
+        print("This was line item", len(line_items_coordinates))
 
-pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
+        import pytesseract
 
-# load the original image
-image = cv2.imread(image_path)
+        pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
 
-# get co-ordinates to crop the image
-c = line_items_coordinates[16]
+        # load the original image
+        image = cv2.imread(image_path)
 
-# cropping image img = image[y0:y1, x0:x1]
-img = image[c[0][1]:c[1][1], c[0][0]:c[1][0]]
+        # get co-ordinates to crop the image
+        c = line_items_coordinates[0]
 
-plt.figure(figsize=(10,10))
-plt.imshow(img)
+        # cropping image img = image[y0:y1, x0:x1]
+        img = image[c[0][1]:c[1][1], c[0][0]:c[1][0]]
 
-# convert the image to black and white for better OCR
-ret,thresh1 = cv2.threshold(img,120,255,cv2.THRESH_BINARY)
+        plt.figure(figsize=(10,10))
+        plt.imshow(img)
 
-# pytesseract image to string to get results
-text = str(pytesseract.image_to_string(thresh1, config='--psm 6'))
-print(text)
+        # convert the image to black and white for better OCR
+        ret,thresh1 = cv2.threshold(img,120,255,cv2.THRESH_BINARY)
+
+        # pytesseract image to string to get results
+        text = str(pytesseract.image_to_string(thresh1, config='--psm 6'))
+
+        with open(f"{cwd}/{file_name}.txt", "a", encoding = "utf-8") as f:
+            f.write(text)
+        print(text)

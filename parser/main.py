@@ -2,12 +2,16 @@
 PDF TO TEXT
 """
 
-from random import randint
-import PyPDF2
-from jsonparser import json_parser
-from utils.utils import *
+import os
 import time
+import shutil
+import pytesseract
+from utils.utils import *
+from pdf2image import convert_from_path
+from jsonparser import json_parser
 
+pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
+cwd = os.getcwd()
 def main(read_path):
     """
     Convert PDF to Text
@@ -15,37 +19,54 @@ def main(read_path):
     t1 = time.time()
     try:
         file_name = read_path.split("/")[-1].split(".")[0]
+        pages = convert_from_path(read_path, 350)
 
-        with open(read_path , "rb") as pdf_file:
-            read_pdf = PyPDF2.PdfFileReader(pdf_file)
-            number_of_pages = read_pdf.getNumPages()
+        i = 1
+        directory = f"{file_name}"
 
-            page_content = ''
-
-            for i in range(number_of_pages):
-                """ just for testing purpose """
-                # if i in range(1):
-                #     continue
-                # else:
-                page = read_pdf.pages[i]
-                page_content += "\n \n" + page.extractText()
-
-        data = page_content.split(".")
-
-        location = f'/home/ctp/Desktop/pdf-parser/parser/txt/{file_name}.txt'
-        newdata = ''
+        # Parent Directory path
+        parent_dir = cwd
+        directorypath = os.path.join(parent_dir, directory)
         try:
-            with open(location, 'w', encoding='utf-8') as file:
-                        file.write(newdata)
-
+            os.mkdir(directorypath)
         except:
-            print(f"NO FILE FOUND WITH FILE NAME : {file_name}")
+            try:
+                os.rmdir(directorypath)
+            except OSError as error:
+                print(error)
+                shutil.rmtree(directorypath)
 
-        for line in data:
-            line = line.strip()
-            if line:
-                with open(location, 'a', encoding='utf-8') as file:
-                    file.write(line)
+            os.mkdir(directorypath)
+
+        for page in pages:
+            image_name = "Page_" + str(i) + ".jpg"
+
+            page.save(f"{directorypath}/{image_name}", "JPEG")
+            print(f"{image_name} SAVED.")
+            i = i+1
+
+        total_pages = i
+
+        try:
+            os.mkdir(f'{cwd}/parser/tesseract_output/{file_name}.txt')
+        except OSError as os_error:
+            print(os_error)
+            try:
+                shutil.rmtree(f'{cwd}/parser/tesseract_output/{file_name}.txt')
+            except:
+                os.remove(f'{cwd}/parser/tesseract_output/{file_name}.txt')
+
+        for i in range(total_pages):
+            if i == 0:
+                continue
+            path = f'{cwd}/{file_name}/Page_{i}.jpg'
+            print(f"code running for path = {path}")
+            text = pytesseract.image_to_string(path)
+
+            with open(f'{cwd}/parser/tesseract_output/{file_name}.txt', 'a',encoding='utf-8') as file:
+                file.write(text)
+
+        location = f'{cwd}/parser/tesseract_output/{file_name}.txt'
 
         file_list = get_file_list(location)
         return_json = json_parser(file_list, location)
@@ -62,5 +83,5 @@ def main(read_path):
 
 
 if __name__ == "__main__":
-    path = '/home/ctp/Desktop/pdf-parser/parser/NMR_PDF/746975-1.pdf' # add the pdf files to NMR files
+    path = f'{cwd}/parser/NMR_PDF/746860-1.pdf' # add the pdf files to NMR files
     main(path)

@@ -3,7 +3,6 @@ JSON PARSER
 """
 
 import time
-from tracemalloc import start
 
 def peer_review(file_list):
     print("RUNNING PEER REVIEWW | ON FILE LIST")
@@ -18,15 +17,49 @@ def peer_review(file_list):
     try:
         for i in preview:
             data = i.split(":")
-            if 'Employer' in data[0]:
-                request_form["employer"] = data[1]
+            if "Date Submitted" in data[0]:
+                if data[1].split(" ")[0] == "":
+                    request_form["date_submitted"] = data[1].split(" ")[1]
+                    request_form["due_date"] = data[2].split(" ")[1]
+                else:
+                    request_form["date_submitted"] = data[1].split(" ")[0]
+                    request_form["due_date"] = data[2].split(" ")[0]
+
+            if "Client Contact" in data[0]:
+                client_contact = ""
+                for i in data[1].split(" "):
+                    if i == "Peer" or i == "Vendor":
+                        continue
+                    client_contact += i + " "
+
+                request_form["client_contact"] = client_contact
+
+            if "Email" in data[0]:
+                request_form["email"] = data[-1]
+
+            # if 'Employer' in data[0]:
+            #     request_form["employer"] = data[1]
 
             if "Claimant" in data[0]:
-                request_form["claiment"] = data[1]
+                claiment = ""
+                for i in data[1].split(" "):
+                    if i == "Employer":
+                        continue
+                    else:
+                        claiment += i+" "
+
+                request_form["claiment"] = claiment
+                request_form["employer"] = data[-1]
 
             if "Claim #" in data[0]:
-                data = data[1].replace("  ","").split(" ")
-                request_form["claim no."] = data[0]
+                claim = ""
+                for i in data[1].split(" "):
+                    if i == "Carrier":
+                        continue
+                    else:
+                        claim += i + " "
+
+                request_form["claim no."] = claim
 
             if "DOI" in data[0]:
                 doidata = data[1].replace("  ","").split(" ")
@@ -35,7 +68,7 @@ def peer_review(file_list):
                 request_form["examiner"] = examiner
 
             if "DOB" in data[0]:
-                dob_data = data[1].replace("  ","").split(" ")
+                dob_data = data[1].split(" ")
                 request_form["DOB"] = dob_data[0]
                 review = data[2]
                 request_form["review no."] = review
@@ -48,8 +81,12 @@ def peer_review(file_list):
 
             if "phone" in data[0].lower():
                 phonedata = data[1].split(" ")
-                request_form["phone no."] = phonedata[1] + " " + phonedata[2]
-                request_form["jurisdiction"] = data[2]
+                for i in phonedata:
+                    if i not in str([1,2,3,4,5,6,7,8,9,0]) or i not in ["\')\'"]:
+                        continue
+                    else:
+                        request_form["phone no."] = phonedata[1] + " " + phonedata[2]
+                        request_form["jurisdiction"] = data[2]
 
             if "Special" in data[0]:
                 speciality_data = data[1].split(" ")
@@ -79,54 +116,73 @@ def medical_records(file_list):
     try:
         """ TREATMENT REQUESTED """
         for i in range(len(file_list)):
-            if "Requested" in file_list[i]:
-                start_index = i
-                break
+            try:
+                if "Requested" in file_list[i]:
+                    start_index = i
+                    break
+            except:
+                pass
         end_index = start_index
-        while end_index < len(file_list) and "Diagnosis" not in file_list[end_index]:
+        while end_index < len(file_list) and "Criteria" not in file_list[end_index]:
             end_index += 1
         treatment = file_list[start_index : end_index]
 
         treatment_data = ''
-        for i in treatment:
-            treatment_data += i
+        try:
+            for i in treatment:
+                treatment_data += i
+        except:
+            treatment_data = ""
         medical_records["treatment_requested"] = treatment_data
 
 
         """ DIAGNOSIS """
-        for i in range(len(file_list)):
-            if "Diagnosis" in file_list[i]:
-                start_index = i
-                break
-        end_index = start_index
-        while end_index < len(file_list) and  file_list[end_index] != "Conclusion:":
-            end_index += 1
-        diagnosis = file_list[start_index : end_index]
+        # for i in range(len(file_list)):
+        #     try:
+        #         if "Diagnosis" in file_list[i]:
+        #             start_index = i
+        #             break
+        #     except:
+        #         pass
+        # end_index = start_index
+        # while end_index < len(file_list) and  file_list[end_index] != "Conclusion:":
+        #     end_index += 1
+        # diagnosis = file_list[start_index : end_index]
 
-        diagnosis_data = ''
-        for i in diagnosis:
-            if "Diagnosis" in i:
-                pass
-            else:
-                diagnosis_data += i
-        medical_records["diagnosis"] = diagnosis_data
+        # diagnosis_data = ''
+        # for i in diagnosis:
+        #     try:
+        #         if "Diagnosis" in i:
+        #             pass
+        #         else:
+        #             diagnosis_data += i
+        #     except:
+        #         diagnosis_data = ''
 
+        # medical_records["diagnosis"] = diagnosis_data
 
         """ CONCLUSION """
+
         for i in range(len(file_list)):
-            if "Conclusion:" in file_list[i]:
-                start_index = i
+            try:
+                if "Conclusion:" in file_list[i]:
+                    start_index = i
+            except:
+                pass
         end_index = start_index
         while end_index < len(file_list) and "Treatment Request Details:" not in  file_list[end_index]:
             end_index += 1
 
         conclusion = file_list[start_index : end_index]
         conclusion_data = ''
-        for i in conclusion:
-            if "Conclusion" in i:
-                pass
-            else:
-                conclusion_data += i
+        try:
+            for i in conclusion:
+                if "Conclusion" in i:
+                    pass
+                else:
+                    conclusion_data += i
+        except:
+            conclusion_data = ""
         medical_records["conclusion"] = conclusion_data
 
     except Exception as error:
@@ -264,3 +320,91 @@ def nmr_parser(file_list):
         end_time = time.time()
         print(f"SUCCESSFULLY RAN NMR SUMMARY | TIMING : {round(end_time - start_time, 2)}")
         return nmr
+
+def prior_auth_req(file_list):
+    print("RUNNING PEER REVIEWW | ON FILE LIST")
+    start_time = time.time()
+    try:
+        """ Patient data """
+        for i in range(len(file_list)):
+            if "Patient Name" in file_list[i]:
+                start_index = i
+                break
+        end_index = start_index
+        while end_index < len(file_list) and "Employer Name " not in  file_list[end_index]:
+            end_index += 1
+
+        preview_patient_data = file_list[start_index : end_index]
+
+        prior_auth_form = {}
+        claim_information = {}
+
+        try:
+            for i in preview_patient_data:
+                data = i.split(" ")
+                if "Patient" in data[0]:
+                    claim_information["patient_name"] = data[-2] + " " + data[-1]
+
+                if "Address" in data[0]:
+                    address = ""
+                    for i in range(len(data)):
+                        address += data[i]+ " "
+                    claim_information["address"] = address
+
+        except:
+            claim_information = {}
+
+        """ Employer """
+        start_index =  end_index
+        while end_index < len(file_list) and "Insurer" not in file_list[end_index]:
+            end_index += 1
+
+        employer_data = file_list[start_index : end_index]
+        employer = {}
+        try:
+            for i in range(len(employer_data)):
+                data = employer_data[i].split(" ")
+
+                if "Employer" in data[0]:
+                    name = ""
+                    for i in range(len(data)):
+                        if i == 0 or i == 1:
+                            continue
+                        name += data[i] + " "
+                    employer["name"] = name
+
+                if "Address" in data[0]:
+                    address = ""
+                    for i in range(len(data)):
+                        if i == 0:
+                            continue
+                        address += data[i]+ " "
+                    employer["address"] = address
+
+                if  "Type" in data[0]:
+                    type = ''
+                    for i in range(len(data)):
+                        if i == 0:
+                            continue
+                        type += data[i] + " "
+                    employer["type"] = type
+
+                if "Insurer" in data[0]:
+                    insurer = ""
+                    for i in range(len(data)):
+                        insurer += data[i] + " "
+                    employer["insurer"] = insurer
+
+        except:
+            employer = {}
+
+        prior_auth_form["claim_information"] = claim_information
+        prior_auth_form["employer_data"] = employer
+
+    except:
+        prior_auth_form = {}
+
+    finally:
+        end_time = time.time()
+        print(f"SUCCESSFULLY RAN PEER REVIEW | TIMING : {round(end_time - start_time, 2)}")
+        return prior_auth_form
