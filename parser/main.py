@@ -79,7 +79,7 @@ def main(read_path):
     finally:
         print(return_statement)
         t2 = time.time()
-        print(f"RAN MAIN FUNCTION | TIMINGS : {round(t2-t1,2)}")
+        print(f"RAN MAIN FUNCTION | TIMINGS : {round(t2-t1,5)}")
 
 
 if __name__ == "__main__":

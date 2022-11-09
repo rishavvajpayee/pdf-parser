@@ -37,9 +37,6 @@ def peer_review(file_list):
             if "Email" in data[0]:
                 request_form["email"] = data[-1]
 
-            # if 'Employer' in data[0]:
-            #     request_form["employer"] = data[1]
-
             if "Claimant" in data[0]:
                 claiment = ""
                 for i in data[1].split(" "):
@@ -62,38 +59,62 @@ def peer_review(file_list):
                 request_form["claim no."] = claim
 
             if "DOI" in data[0]:
-                doidata = data[1].replace("  ","").split(" ")
-                request_form["DOI"] = doidata[0]
-                examiner = data[2]
+                doi = ""
+                for i in data[1].split(" "):
+                    if i == "Claims" or i == "Examiner":
+                        continue
+                    else:
+                        doi += i
+                doidata = doi
+                request_form["DOI"] = doidata
+                examiner = data[-1]
                 request_form["examiner"] = examiner
 
             if "DOB" in data[0]:
-                dob_data = data[1].split(" ")
-                request_form["DOB"] = dob_data[0]
-                review = data[2]
+                dob_data = ""
+                for i in data[1].split(" "):
+                    if i == "Review" or i == "#":
+                        continue
+                    else:
+                        dob_data += i + " "
+                request_form["DOB"] = dob_data
+                review = data[-1]
                 request_form["review no."] = review
 
             if "Provider" in data[0]:
-                providerdata = data[1].replace("  ", "").split(',')
-                request_form["provider"] = providerdata[0]
-                request = data[2]
-                request_form["no. of requests"] = request
+                providerdata = ""
+                try :
+                    for i in data[1].replace("  ", "").split(' '):
+                        providerdata += i + " "
+                except:
+                    providerdata = ""
+                request_form["provider"] = providerdata
 
             if "phone" in data[0].lower():
-                phonedata = data[1].split(" ")
+                phonedata = ""
+                for i in data[1].split(" "):
+                    if i == "Jurisdiction":
+                        continue
+                    else:
+                        phonedata += i + " "
                 for i in phonedata:
                     if i not in str([1,2,3,4,5,6,7,8,9,0]) or i not in ["\')\'"]:
                         continue
                     else:
-                        request_form["phone no."] = phonedata[1] + " " + phonedata[2]
-                        request_form["jurisdiction"] = data[2]
+                        request_form["phone no."] = phonedata
+                        request_form["jurisdiction"] = data[-1]
 
-            if "Special" in data[0]:
-                speciality_data = data[1].split(" ")
-                request_form["speciality"] = speciality_data[1]
-                request_form["level"] = data[2]
+            if "Specialty" in data[0]:
+                speciality_data = ""
+                for i in data[1].split(" "):
+                    if i == "Review" or i == "Level":
+                        continue
+                    else:
+                        speciality_data += i + " "
+                request_form["speciality"] = speciality_data
+                request_form["review_level"] = data[-1]
 
-            if "Review" in data[0]:
+            if "Review Type" in data[0]:
                 request_form["review_type"] = data[1]
 
     except Exception as error:
@@ -204,87 +225,85 @@ def nmr_parser(file_list):
                 start_index = i
 
         end_index = start_index
-        while end_index < len(file_list) and "SSN" not in file_list[end_index]:
+        while end_index < len(file_list) and "Attachments" not in file_list[end_index]:
             end_index += 1
 
         nmr_data = file_list[start_index : end_index]
 
         nmr = {}
 
-        for i in nmr_data:
-            data = i.split(" ")
-            if 'ClientDueDate' in data[0] and len(data) <= 3:
-                nmr["client_due_date"] = data[1 :]
+        for i in range(len(nmr_data)):
+            data = nmr_data
+            if 'Client Due Date' in data[i]:
+                nmr["client_due_date"] = data[i + 35]
 
-            if 'Referrer' in data[0]:
-                nmr["referrer"] = data[-1]
+            if 'Referrer' in data[i] and "Referrer Phone" not in data[i] and "Referrer Email" not in data[i]:
+                nmr["referrer"] = data[i+35]
 
-            if 'ReferrerPhone' in data[0]:
-                nmr["referrer_phone"] = data[-1]
+            if 'Referrer Phone' in data[i]:
+                nmr["referrer_phone"] = data[i+35]
 
-            if "ReferrerEmail" in data[0]:
-                nmr['referrer_email'] = data[-1]
+            if "Referrer Email" in data[i] and "Referrer Phone" not in data[i]:
+                nmr['referrer_email'] =data[i+35]
 
-            if 'Client' in data[0] and "ClientDueData" not in data[0] and len(data) > 3:
-                client_data = ''
-                for i in data[1:]:
-                    client_data += i
-                print(client_data)
-                nmr["client_data"] =  client_data
+            if 'Client' in data[i] and "Client Due Date" not in data[i] and len(data) > 3:
+                    nmr["client_data"] =  data[i+35]
 
-            if "Turnaround" in data[0]:
-                nmr["turn_around_type"] = data[-1]
+            if "Turnaround" in data[i]:
+                nmr["turn_around_type"] = data[i+35]
 
-            if "DateCreated" in data[0]:
-                nmr["date_created"] = data[1:]
+            if "Date Created" in data[i]:
+                nmr["date_created"] = data[i+35]
 
-            if "ReferralType" in data[0]:
-                nmr['referral_type'] = data[-1]
+            if "Referral Type" in data[i]:
+                nmr['referral_type'] = data[i+35]
 
-            if "Lineof" in data[0]:
-                nmr["line_of_business"] = data[-1]
+            if "Line of" in data[i]:
+                nmr["line_of_business"] = data[i+35]
 
-            if "ReviewType" in data[0]:
-                nmr["review_type"] = data[-1]
+            if "Review Type" in data[i]:
+                nmr["review_type"] = data[i+35]
 
-            if "ReviewLevel" in data[0]:
-                nmr["review_level"] = data[-1]
+            if "Review Level" in data[i]:
+                nmr["review_level"] = data[i+35]
 
-            if "ReviewTiming" in data[0]:
-                nmr["review_timing"] = data[-1]
+            if "Review Timing" in data[i]:
+                nmr["review_timing"] = data[i+35]
 
-            if "StateofJurisdiction" in data[0]:
-                nmr["state_of_jurisdiction"] = data[-1]
+            if "State of Jurisdiction" in data[i]:
+                nmr["state_of_jurisdiction"] = data[i+35]
 
-            if "LastName" in data[0]:
-                nmr["lastname"] = data[-1]
+            if "Last Name" in data[i]:
+                nmr["lastname"] = data[i+35]
 
-            if "Firstname" in data[0]:
-                nmr["firstname"] = data[-1]
+            if "First Name" in data[i]:
+                nmr["firstname"] = data[i+35]
 
-            if "ClaimNumber" in data[0]:
-                nmr["claim_number"] = data[-1]
+            if "Claim Number" in data[i]:
+                nmr["claim_number"] = data[i+35]
 
-            if "Gender" in data[0]:
-                nmr["gender"] = data[-1]
+            if "Gender" in data[i]:
+                nmr["gender"] = data[i+35]
 
-            if "DateofBirth" in data[0]:
-                nmr["DOB"] = data[-1]
+            if "Date of Birth" in data[i]:
+                nmr["DOB"] = data[i+35]
 
-            if "DateofDisability" in data[0]:
-                nmr["date_of_disability/injury"] = data[-1]
+            if "Date of Disability" in data[i]:
+                nmr["date_of_disability/injury"] = data[i+35]
 
-            if "Diagnosis" in data[0]:
+            if "Diagnosis" in data[i]:
                 diagnosis_data = ''
-                for i in data:
-                    i = i.replace(",","")
-                    i = i.replace(";", "")
-                    if "Diagnosis" in i:
-                        d = i.split("(es)")
-                        diagnosis_data += d[-1]
-                    else:
-                        diagnosis_data += " " + i
-                nmr["diagnosis"] = diagnosis_data
+                try:
+                    for i in data:
+                        i = i.replace(",","")
+                        i = i.replace(";", "")
+                        if "Diagnosis" in i:
+                            d = i.split("(es)")
+                            diagnosis_data += d[-1]
+                        else:
+                            diagnosis_data += " " + i
+                except:
+                    nmr["diagnosis"] = data[i+35]
 
         """ CASE SUMMARY """
         for i in range(len(file_list)):
@@ -297,20 +316,23 @@ def nmr_parser(file_list):
         summary = file_list[start_index : end_index]
 
         summary_data = ''
-        for i in summary:
-            if "CaseSummaryGuideline" in i:
-                split_data = i.split(" ")
-                main_data = ""
-                for i in range(len(split_data)):
-                    if "CaseSummaryGuideline" in split_data[i]:
-                        continue
-                    if "Variance" in split_data[i]:
-                        continue
-                    else:
-                        main_data += split_data[i] + " "
-                        summary_data += main_data
-            else:
-                summary_data += i
+        try:
+            for i in summary:
+                if "CaseSummaryGuideline" in i:
+                    split_data = i.split(" ")
+                    main_data = ""
+                    for i in range(len(split_data)):
+                        if "CaseSummaryGuideline" in split_data[i]:
+                            continue
+                        if "Variance" in split_data[i]:
+                            continue
+                        else:
+                            main_data += split_data[i] + " "
+                            summary_data += main_data
+                else:
+                    summary_data += i
+        except:
+            summary_data = ""
         nmr["case_summary"] = summary_data
 
     except Exception as error:
@@ -322,7 +344,7 @@ def nmr_parser(file_list):
         return nmr
 
 def prior_auth_req(file_list):
-    print("RUNNING PEER REVIEWW | ON FILE LIST")
+    print("RUNNING PRIOR AUTH REVIEWW | ON FILE LIST")
     start_time = time.time()
     try:
         """ Patient data """
@@ -340,71 +362,129 @@ def prior_auth_req(file_list):
         claim_information = {}
 
         try:
-            for i in preview_patient_data:
-                data = i.split(" ")
+            for i in range(len(preview_patient_data)):
+                data = preview_patient_data[i].replace("_", "").split(" ")
                 if "Patient" in data[0]:
+                    patient_name = ""
+                    leave = ["Patient","Name"]
+                    for i in data:
+                        if i in leave:
+                            pass
+                        else:
+                            patient_name += i + " "
+
                     claim_information["patient_name"] = data[-2] + " " + data[-1]
 
-                if "Address" in data[0]:
+                elif "Address" in data[0]:
                     address = ""
+                    curr = 0
                     for i in range(len(data)):
-                        address += data[i]+ " "
+                        leave = ["Address"]
+                        if i in leave:
+                            pass
+                        else:
+                            address += data[i]+ " "
+
+                elif "SSN" in data[0]:
+                    for i in data:
+                        while "DOB" not in i:
+                            ssn = ""
+                            ssn += i + " "
+                    for i in data:
+                        dob = ""
+                        if "DOB" not in i:
+                            pass
+                        elif "Gender" in i:
+                            break
+                        else:
+                            dob += i + " "
+
+                    claim_information["DOB"] = dob
+
+
+
+                else:
+                    for i in data:
+                        address += i + " "
+
                     claim_information["address"] = address
 
-        except:
+        except Exception as error:
             claim_information = {}
 
         """ Employer """
         start_index =  end_index
-        while end_index < len(file_list) and "Insurer" not in file_list[end_index]:
+        while end_index < len(file_list) and "Insurer Name" not in file_list[end_index]:
             end_index += 1
 
         employer_data = file_list[start_index : end_index]
         employer = {}
         try:
             for i in range(len(employer_data)):
-                data = employer_data[i].split(" ")
 
-                if "Employer" in data[0]:
+                if "Employer" in employer_data[i]:
+                    data = employer_data[i].split("=")
                     name = ""
                     for i in range(len(data)):
-                        if i == 0 or i == 1:
+                        if i == 0:
                             continue
                         name += data[i] + " "
                     employer["name"] = name
 
-                if "Address" in data[0]:
+                if "Address" in employer_data[i]:
+                    data = employer_data[i].split(" ")
                     address = ""
-                    for i in range(len(data)):
-                        if i == 0:
+                    for j in range(len(data)):
+                        if j == 0:
                             continue
-                        address += data[i]+ " "
+                        address += data[j] + " "
+
+                else:
+                    data = employer_data[i].split(" ")
+                    for i in data:
+                        address += i + " "
                     employer["address"] = address
-
-                if  "Type" in data[0]:
-                    type = ''
-                    for i in range(len(data)):
-                        if i == 0:
-                            continue
-                        type += data[i] + " "
-                    employer["type"] = type
-
-                if "Insurer" in data[0]:
-                    insurer = ""
-                    for i in range(len(data)):
-                        insurer += data[i] + " "
-                    employer["insurer"] = insurer
 
         except:
             employer = {}
 
-        prior_auth_form["claim_information"] = claim_information
-        prior_auth_form["employer_data"] = employer
+        """ Insurer Name """
+        start_index =  end_index
+        while end_index < len(file_list) and "Claim Admin" not in file_list[end_index]:
+            end_index += 1
+
+        insurer_data = file_list[start_index : end_index]
+        insurer = {}
+        try:
+            for i in range(len(insurer_data)):
+                if "Insurer Name" in insurer_data[i]:
+                    leave = ["__", "_"]
+                    data = insurer_data[i].split(" ")
+                    insurer_name = ""
+                    for i in range(len(data)):
+                        if i == 0:
+                            continue
+                        if data[i] == "Insurer":
+                            break
+                        else:
+                            if data[i] in leave:
+                                pass
+                            else:
+                                insurer_name += data[i] + " "
+                    insurer["insurer_name"] = insurer_name
+                    insurer["insurer_id"] = data[-1]
+
+        except:
+            insurer = {}
+
 
     except:
         prior_auth_form = {}
 
     finally:
+        prior_auth_form["claim_information"] = claim_information
+        prior_auth_form["employer_data"] = employer
+        prior_auth_form["insurer"] = insurer
         end_time = time.time()
         print(f"SUCCESSFULLY RAN PEER REVIEW | TIMING : {round(end_time - start_time, 2)}")
         return prior_auth_form
