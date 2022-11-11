@@ -71,6 +71,7 @@ def main(read_path):
         file_list = get_file_list(location)
         return_json = json_parser(file_list, location)
         return_statement = convert_to_json(return_json, file_name)
+        json_to_text(file_name)
 
     except Exception as error:
         return_statement = error
@@ -83,5 +84,5 @@ def main(read_path):
 
 
 if __name__ == "__main__":
-    path = f'{cwd}/parser/NMR_PDF/746860-1.pdf' # add the pdf files to NMR files
+    path = f'{cwd}/parser/NMR_PDF/750685-1.pdf' # add the pdf files to NMR files
     main(path)

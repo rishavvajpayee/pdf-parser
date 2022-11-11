@@ -20,7 +20,7 @@ def peer_review(file_list):
             if "Date Submitted" in data[0]:
                 if data[1].split(" ")[0] == "":
                     request_form["date_submitted"] = data[1].split(" ")[1]
-                    request_form["due_date"] = data[2].split(" ")[1]
+                    request_form["due_date"] = data[1].split(" ")[2]
                 else:
                     request_form["date_submitted"] = data[1].split(" ")[0]
                     request_form["due_date"] = data[2].split(" ")[0]
@@ -138,19 +138,32 @@ def medical_records(file_list):
         """ TREATMENT REQUESTED """
         for i in range(len(file_list)):
             try:
-                if "Requested" in file_list[i]:
-                    start_index = i
-                    break
+                if "Medical Records:" in file_list[i]:
+                    if ":" in file_list[i+1]:
+                        start_index = i
+                        break
+                    else:
+                        start_index = i+1
+                        break
             except:
                 pass
         end_index = start_index
-        while end_index < len(file_list) and "Criteria" not in file_list[end_index]:
+        while end_index < len(file_list) and "Source" not in file_list[end_index]:
             end_index += 1
+
+        while start_index < len(file_list) and ":" not in file_list[start_index]:
+            start_index += 1
+
         treatment = file_list[start_index : end_index]
+
 
         treatment_data = ''
         try:
             for i in treatment:
+                if "Requested" in i:
+                    break
+                if "Diagnosis" in i:
+                    break
                 treatment_data += i
         except:
             treatment_data = ""
@@ -158,53 +171,52 @@ def medical_records(file_list):
 
 
         """ DIAGNOSIS """
-        # for i in range(len(file_list)):
-        #     try:
-        #         if "Diagnosis" in file_list[i]:
-        #             start_index = i
-        #             break
-        #     except:
-        #         pass
-        # end_index = start_index
-        # while end_index < len(file_list) and  file_list[end_index] != "Conclusion:":
-        #     end_index += 1
-        # diagnosis = file_list[start_index : end_index]
-
-        # diagnosis_data = ''
-        # for i in diagnosis:
-        #     try:
-        #         if "Diagnosis" in i:
-        #             pass
-        #         else:
-        #             diagnosis_data += i
-        #     except:
-        #         diagnosis_data = ''
-
-        # medical_records["diagnosis"] = diagnosis_data
-
-        """ CONCLUSION """
-
         for i in range(len(file_list)):
             try:
-                if "Conclusion:" in file_list[i]:
+                if "Diagnosis:" in file_list[i]:
                     start_index = i
+                    break
             except:
                 pass
         end_index = start_index
-        while end_index < len(file_list) and "Treatment Request Details:" not in  file_list[end_index]:
+        while end_index < len(file_list) and "Source" not in file_list[end_index]:
             end_index += 1
+        diagnosis = file_list[start_index : end_index]
 
-        conclusion = file_list[start_index : end_index]
-        conclusion_data = ''
-        try:
-            for i in conclusion:
-                if "Conclusion" in i:
-                    pass
-                else:
-                    conclusion_data += i
-        except:
-            conclusion_data = ""
-        medical_records["conclusion"] = conclusion_data
+        diagnosis_data = ''
+        for i in diagnosis:
+            try:
+                if "Recommendation" in i:
+                    break
+                diagnosis_data += i
+            except:
+                diagnosis_data = ''
+
+        medical_records["diagnosis"] = diagnosis_data
+
+    #     """ CONCLUSION """
+
+    #     for i in range(len(file_list)):
+    #         try:
+    #             if "Conclusion:" in file_list[i]:
+    #                 start_index = i
+    #         except:
+    #             pass
+    #     end_index = start_index
+    #     while end_index < len(file_list) and "Treatment Request Details:" not in  file_list[end_index]:
+    #         end_index += 1
+
+    #     conclusion = file_list[start_index : end_index]
+    #     conclusion_data = ''
+    #     try:
+    #         for i in conclusion:
+    #             if "Conclusion" in i:
+    #                 pass
+    #             else:
+    #                 conclusion_data += i
+    #     except:
+    #         conclusion_data = ""
+    #     medical_records["conclusion"] = conclusion_data
 
     except Exception as error:
         medical_records = {}
@@ -377,7 +389,6 @@ def prior_auth_req(file_list):
 
                 elif "Address" in data[0]:
                     address = ""
-                    curr = 0
                     for i in range(len(data)):
                         leave = ["Address"]
                         if i in leave:
@@ -386,10 +397,6 @@ def prior_auth_req(file_list):
                             address += data[i]+ " "
 
                 elif "SSN" in data[0]:
-                    for i in data:
-                        while "DOB" not in i:
-                            ssn = ""
-                            ssn += i + " "
                     for i in data:
                         dob = ""
                         if "DOB" not in i:
