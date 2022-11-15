@@ -1,6 +1,6 @@
 """
 PDF TO TEXT
-"""
+""" 
 
 import os
 import time
@@ -10,7 +10,36 @@ from utils.utils import *
 from pdf2image import convert_from_path
 from jsonparser import json_parser
 
-pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
+class PdfParser():
+    @classmethod
+    def on_get(cls, req, resp):
+        resp.text = "Api running successfully"
+        return resp
+
+    @classmethod
+    def on_post(cls, req, resp):
+        # Retrieve file extension
+        try:
+            file = req.get_media()
+            for part in file:
+                if part.content_type == 'application/json':
+                    resp.media = part.get_media()
+                elif part.name == 'file':
+                    name = part.secure_filename
+                    name = name.split(".")[0]
+                    path = f"{cwd}/parser/NMR_PDF/{name}.pdf"
+                    print(name)
+                    with open(path, 'wb') as outfile:
+                        part.stream.pipe(outfile)
+
+            final_json = main(path)
+            resp.text = json.dumps(final_json)
+            return resp
+
+        except Exception as error:
+            print(error)
+
+# pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
 cwd = os.getcwd()
 def main(read_path):
     """
@@ -70,8 +99,11 @@ def main(read_path):
 
         file_list = get_file_list(location)
         return_json = json_parser(file_list, location)
-        return_statement = convert_to_json(return_json, file_name)
-        json_to_text(file_name)
+        return_statement = "ho gaya"
+        return return_json
+        # return_statement = convert_to_json(return_json, file_name)
+
+        # json_to_text(file_name)
 
     except Exception as error:
         return_statement = error
@@ -83,6 +115,6 @@ def main(read_path):
         print(f"RAN MAIN FUNCTION | TIMINGS : {round(t2-t1,5)}")
 
 
-if __name__ == "__main__":
-    path = f'{cwd}/parser/NMR_PDF/750685-1.pdf' # add the pdf files to NMR files
-    main(path)
+# if __name__ == "__main__":
+    # path = f'{cwd}/parser/NMR_PDF/746485-1.pdf' # add the pdf files to NMR files
+    # main(path)
